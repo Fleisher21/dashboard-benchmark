@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neubox · Benchmark VPS 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ── */
+:root {
+  --bg:          #faf9f7;
+  --surface:     #ffffff;
+  --raised:      #f4f2ee;
+  --border:      #e8e4de;
+  --border-md:   #d6d0c8;
+  --ink:         #18160f;
+  --ink-2:       #4c4840;
+  --ink-3:       #9c9488;
+  --accent:      #2250e8;
+  --accent-tint: #eef2fd;
+  --accent-ring: #c4d0f9;
+  --ok:          #1a7a46;
+  --ok-tint:     #edfaf3;
+  --ok-ring:     #a7e5c4;
+  --warn:        #a85c00;
+  --warn-tint:   #fff8ed;
+  --warn-ring:   #fcd59a;
+  --err:         #c0251d;
+  --err-tint:    #fef3f2;
+  --err-ring:    #f9bdba;
+  --r:           12px;
+  --r-sm:        7px;
+  --shadow:      0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:   0 4px 16px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.05);
+}
+
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter';
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* subtle warm paper dot texture */
+body::after {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(circle, #c5bfb5 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: .18;
+}
+
+/* ── LAYOUT ── */
+.shell { position: relative; z-index: 1; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(250,249,247,.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.topbar-brand { display: flex; align-items: center; gap: 10px; }
+
+.topbar-logo {
+  width: 30px; height: 30px; border-radius: 7px;
+  background: var(--ink); display: grid; place-items: center;
+}
+.topbar-logo svg { width: 16px; height: 16px; fill: #fff; }
+
+.topbar-name {
+  font-family: 'Inter', serif;
+  font-size: 16px; color: var(--ink);
+}
+
+.topbar-name span {
+  font-family: 'Inter', monospace;
+  font-size: 10px; color: var(--ink-3);
+  background: var(--raised); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1px 6px;
+  margin-left: 8px; letter-spacing: .04em;
+  vertical-align: middle;
+}
+
+.live-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--ok);
+  background: var(--ok-tint); border: 1px solid var(--ok-ring);
+  border-radius: 100px; padding: 3px 10px; letter-spacing: .04em;
+}
+.live-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--ok); animation: pulse 2s ease infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+/* ── HERO ── */
+.hero {
+  padding: 48px 32px 0;
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 32px; align-items: end;
+}
+
+.hero-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; text-transform: uppercase; letter-spacing: .14em;
+  color: var(--accent); margin-bottom: 10px;
+}
+
+.hero-title {
+  font-family: 'Inter', serif;
+  font-size: 38px; font-weight: 400; line-height: 1.15;
+  letter-spacing: -.5px; color: var(--ink);
+}
+
+.hero-title em {
+  font-style: italic; color: var(--accent);
+}
+
+.hero-meta {
+  margin-top: 14px;
+  font-size: 13px; color: var(--ink-3); line-height: 1.8;
+}
+
+.hero-stat-group {
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+}
+
+.hero-stat {
+  text-align: right;
+}
+
+.hero-stat-n {
+  font-family: 'Inter', serif;
+  font-size: 32px; color: var(--ink); line-height: 1;
+}
+
+.hero-stat-l {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: .08em;
+}
+
+/* ── EXEC BANNER ── */
+.exec {
+  max-width: 1200px; margin: 32px auto 0; padding: 0 32px;
+}
+
+.exec-inner {
+  background: var(--ink); border-radius: var(--r);
+  padding: 28px 32px;
+  display: grid; grid-template-columns: 60px 1fr; gap: 20px; align-items: start;
+}
+
+.exec-q {
+  font-family: 'Inter', serif;
+  font-size: 72px; font-style: italic;
+  color: rgba(255,255,255,.15); line-height: .7;
+  user-select: none; margin-top: 4px;
+}
+
+.exec-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; text-transform: uppercase; letter-spacing: .14em;
+  color: rgba(255,255,255,.38); margin-bottom: 10px;
+}
+
+.exec-text {
+  font-family: 'Inter', serif;
+  font-size: 18px; font-weight: 400; line-height: 1.6;
+  color: rgba(255,255,255,.82);
+}
+
+.exec-text strong { color: #fff; font-style: italic; }
+.exec-text mark { background: transparent; color: #fbbf24; font-style: italic; }
+
+/* ── MAIN ── */
+.main {
+  max-width: 1200px; margin: 0 auto; padding: 32px 32px 80px;
+}
+
+/* ── PILL TABS ── */
+.tab-strip {
+  display: flex; gap: 3px;
+  background: var(--raised); border: 1px solid var(--border);
+  border-radius: 100px; padding: 3px;
+  margin-bottom: 32px; overflow-x: auto; scrollbar-width: none;
+}
+.tab-strip::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  flex: 1; min-width: 130px;
+  padding: 8px 18px; border-radius: 100px;
+  background: transparent; border: none; cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 12px; font-weight: 400; color: var(--ink-3);
+  transition: all .18s; white-space: nowrap; text-align: center;
+  letter-spacing: .01em;
+}
+
+.tab-btn:hover { color: var(--ink-2); background: rgba(255,255,255,.6); }
+
+.tab-btn.on {
+  background: var(--surface); color: var(--ink);
+  font-weight: 600; box-shadow: var(--shadow);
+}
+
+.panel { display: none; animation: fadeUp .24s ease; }
+.panel.on { display: block; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:translateY(0) } }
+
+/* ── SECTION LABEL ── */
+.sec-head {
+  display: flex; align-items: baseline; gap: 10px; margin-bottom: 20px;
+}
+.sec-n {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--ink-3); letter-spacing: .1em;
+}
+.sec-t {
+  font-family: 'Inter', serif;
+  font-size: 22px; font-weight: 400; color: var(--ink); letter-spacing: -.2px;
+}
+
+/* ── GRIDS ── */
+.g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 16px; }
+.g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 16px; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+@media(max-width:900px){ .g4{grid-template-columns:1fr 1fr} .g3{grid-template-columns:1fr 1fr} }
+@media(max-width:560px){ .g4,.g3,.g2{grid-template-columns:1fr} }
+
+/* ── CARD ── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 20px;
+  box-shadow: var(--shadow);
+  transition: box-shadow .2s, border-color .2s, transform .2s;
+}
+.card:hover { box-shadow: var(--shadow-md); border-color: var(--border-md); transform: translateY(-1px); }
+
+/* ── KPI CARD ── */
+.kpi {}
+.kpi-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--ink-3); margin-bottom: 10px;
+}
+.kpi-val {
+  font-family: 'Inter', serif;
+  font-size: 42px; font-weight: 400; line-height: 1; letter-spacing: -1px;
+  margin-bottom: 4px;
+}
+.kpi-sub { font-size: 12px; color: var(--ink-3); line-height: 1.4; }
+.kpi-bar {
+  height: 3px; border-radius: 0 0 var(--r) var(--r);
+  margin: 14px -20px -20px;
+}
+
+/* ── BAR CHART CARD ── */
+.brow {
+  display: grid; grid-template-columns: 116px 1fr 50px;
+  align-items: center; gap: 12px; margin-bottom: 10px;
+}
+.brow-name { font-size: 12px; color: var(--ink-2); text-align: right; }
+.brow-name.hi { color: var(--accent); font-weight: 600; }
+.brow-track {
+  background: var(--raised); border-radius: 100px; height: 24px;
+  overflow: hidden; border: 1px solid var(--border);
+}
+.brow-fill {
+  height: 100%; border-radius: 100px;
+  display: flex; align-items: center; padding-left: 10px;
+  transition: width 1.1s cubic-bezier(.4,0,.2,1);
+}
+.brow-fill span { font-size: 10px; color: rgba(255,255,255,.82); white-space: nowrap; font-weight: 500; }
+.brow-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink-2); text-align: center; }
+
+/* ── INSIGHT BOX ── */
+.insight {
+  background: var(--accent-tint); border: 1px solid var(--accent-ring);
+  border-left: 3px solid var(--accent); border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: 14px 18px; margin-top: 18px;
+}
+.insight-lbl {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  text-transform: uppercase; letter-spacing: .12em; color: var(--accent);
+  margin-bottom: 5px;
+}
+.insight p { font-size: 13px; color: var(--ink-2); line-height: 1.7; }
+.insight strong { color: var(--ink); font-weight: 600; }
+
+/* ── CHIPS ── */
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px; border-radius: 100px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500;
+}
+.chip-yes { background: var(--ok-tint); color: var(--ok); border: 1px solid var(--ok-ring); }
+.chip-no  { background: var(--err-tint); color: var(--err); border: 1px solid var(--err-ring); }
+.chip-mid { background: var(--warn-tint); color: var(--warn); border: 1px solid var(--warn-ring); }
+
+/* ── GAPS TABLE ── */
+.tbl-wrap { overflow-x: auto; border-radius: var(--r); border: 1px solid var(--border); }
+.tbl {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+  background: var(--surface);
+}
+.tbl thead th {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3);
+  padding: 10px 13px; text-align: left;
+  border-bottom: 1px solid var(--border); background: var(--raised);
+  white-space: nowrap; position: sticky; top: 0;
+}
+.tbl tbody td {
+  padding: 11px 13px; border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.tbl tbody tr:last-child td { border-bottom: none; }
+.tbl tbody tr:hover td { background: var(--raised); }
+.tbl td:first-child { font-weight: 600; color: var(--ink); }
+.tbl td:nth-child(2) { color: var(--ink-3); max-width: 180px; line-height: 1.4; }
+.pri-hi { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--err); }
+.pri-md { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--warn); }
+.pri-lo { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-3); }
+
+/* ── SCORE CARDS ── */
+.sc-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.sc-name { font-family: 'Inter', serif; font-size: 18px; color: var(--ink); }
+.sc-val { font-family: 'Inter', serif; font-size: 30px; line-height: 1; }
+.sc-track { background: var(--raised); border-radius: 100px; height: 5px; overflow: hidden; margin-bottom: 16px; border: 1px solid var(--border); }
+.sc-fill { height: 100%; border-radius: 100px; }
+.sc-rows { display: flex; flex-direction: column; gap: 8px; }
+.sc-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+.sc-row-l { color: var(--ink-3); }
+.sc-stars { font-size: 11px; letter-spacing: 1px; }
+
+/* ── REGIONAL GRID ── */
+.reg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media(max-width:560px){ .reg-grid { grid-template-columns: 1fr; } }
+.reg-card {
+  display: flex; gap: 14px; align-items: flex-start;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 16px;
+  box-shadow: var(--shadow); transition: box-shadow .2s, transform .2s;
+}
+.reg-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.reg-ico { width: 36px; height: 36px; border-radius: 9px; display: grid; place-items: center; font-size: 16px; flex-shrink: 0; }
+.reg-body h4 { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
+.reg-body p { font-size: 12px; color: var(--ink-3); line-height: 1.55; }
+
+/* ── RAW DATA TABLE ── */
+.raw-table-wrap { overflow-x: auto; }
+.raw-table {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.raw-table th {
+  padding: 8px 12px; background: var(--ink); color: rgba(255,255,255,.7);
+  font-size: 10px; letter-spacing: .06em; text-align: left; white-space: nowrap;
+}
+.raw-table th:first-child { border-radius: var(--r-sm) 0 0 0; }
+.raw-table th:last-child { border-radius: 0 var(--r-sm) 0 0; }
+.raw-table td {
+  padding: 9px 12px; border-bottom: 1px solid var(--border);
+  color: var(--ink-2); white-space: nowrap;
+}
+.raw-table tr:last-child td { border-bottom: none; }
+.raw-table tr:hover td { background: var(--raised); }
+.raw-table td.nb { color: var(--accent); font-weight: 500; background: var(--accent-tint) !important; }
+.raw-table td.good { color: var(--ok); }
+.raw-table td.bad { color: var(--err); }
+.raw-table td.mid { color: var(--warn); }
+
+/* ── ROADMAP ── */
+.rm-phase {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); overflow: hidden;
+  box-shadow: var(--shadow); margin-bottom: 14px;
+}
+.rm-phase-head {
+  background: var(--raised); padding: 12px 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; text-transform: uppercase; letter-spacing: .14em; color: var(--ink-3);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.rm-phase-dot { width: 8px; height: 8px; border-radius: 50%; }
+.rm-item {
+  display: flex; gap: 16px; padding: 14px 20px;
+  border-bottom: 1px solid var(--border); transition: background .15s;
+}
+.rm-item:last-child { border-bottom: none; }
+.rm-item:hover { background: var(--raised); }
+.rm-n {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: grid; place-items: center;
+  font-family: 'Inter', serif; font-size: 14px;
+  flex-shrink: 0;
+}
+.rm-body { flex: 1; }
+.rm-body h4 { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
+.rm-body p { font-size: 12px; color: var(--ink-3); line-height: 1.55; }
+.rm-tag { flex-shrink: 0; align-self: flex-start; margin-top: 3px; }
+
+/* ── COMP TABLE (full) ── */
+.comp-table-wrap { overflow-x: auto; border-radius: var(--r); border: 1px solid var(--border); margin-bottom: 16px; }
+.comp-table { width: 100%; border-collapse: collapse; font-size: 12px; background: var(--surface); }
+.comp-table th {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3);
+  padding: 10px 14px; background: var(--raised);
+  border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap;
+}
+.comp-table td {
+  padding: 12px 14px; border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.comp-table tr:last-child td { border-bottom: none; }
+.comp-table tr:hover td { background: var(--raised); }
+.comp-table tr.nb-row td { background: var(--accent-tint); }
+.comp-table tr.nb-row td:first-child { font-weight: 600; color: var(--accent); }
+.comp-table .score-cell {
+  font-family: 'Inter', serif; font-size: 11px; color: var(--ink); align-items: center;
+}
+.comp-table .tag-cell { font-size: 11px; color: var(--ink-3); }
+.comp-table .price-cell { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.5L20 9v6l-8 4-8-4V9l8-4.5z"/></svg>
+    </div>
+    <div class="topbar-name">
+      Neubox VPS
+      <span>BENCHMARK 2026</span>
+    </div>
+  </div>
+  <div class="live-badge"><span class="live-dot"></span>Activo · Luis Fleisher</div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <div class="hero-eyebrow">Auditoría UX + Psicología de Conversión</div>
+    <h1 class="hero-title">
+      10 competidores,<br>
+      8 dimensiones,<br>
+      <em>5 insights accionables</em>
+    </h1>
+    <p class="hero-meta">
+      5 internacionales · 5 nacionales · Abril 2026<br>
+      Fricciones invisibles, gaps de producto y ventajas regionales
+    </p>
+  </div>
+  <div class="hero-stat-group">
+    <div class="hero-stat">
+      <div class="hero-stat-n">10</div>
+      <div class="hero-stat-l">Competidores</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-n">8</div>
+      <div class="hero-stat-l">Dimensiones</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-n">#1</div>
+      <div class="hero-stat-l">Chatbot</div>
+    </div>
+  </div>
+</div>
+
+<!-- EXEC BANNER -->
+<div class="exec">
+  <div class="exec-inner">
+    <div class="exec-q">"</div>
+    <div>
+      <div class="exec-label">Resumen ejecutivo</div>
+      <p class="exec-text">
+        <strong>Neubox es el líder en confianza y soporte local</strong>, con el mejor chatbot del mercado y transparencia total en pesos mexicanos.
+        Sin embargo, <mark>presenta fricción estética y operativa en el checkout</mark> que genera desventaja frente a la velocidad de conversión de los competidores globales.
+        El plan es concreto: reducir clics, modernizar la interfaz y <strong>capitalizar donde los gigantes fallan sistemáticamente</strong>.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TABS -->
+  <div class="tab-strip">
+    <button class="tab-btn on"  onclick="go('t1',this)">01 · Fricción</button>
+    <button class="tab-btn"     onclick="go('t2',this)">02 · Gaps</button>
+    <button class="tab-btn"     onclick="go('t3',this)">03 · Score UX</button>
+    <button class="tab-btn"     onclick="go('t4',this)">04 · Regional</button>
+    <button class="tab-btn"     onclick="go('t5',this)">05 · Datos RAW</button>
+    <button class="tab-btn"     onclick="go('t6',this)">06 · Roadmap</button>
+  </div>
+
+  <!-- ══════════════════════════════ TAB 1 · FRICCIÓN -->
+  <div id="t1" class="panel on">
+
+    <div class="sec-head"><span class="sec-n">01 —</span><span class="sec-t">Índice de Fricción Comparativo</span></div>
+
+    <div class="g4">
+      <div class="card kpi">
+        <div class="kpi-lbl">Neubox hoy</div>
+        <div class="kpi-val" style="color:var(--warn)">5–8</div>
+        <div class="kpi-sub">clics promedio al checkout</div>
+        <div class="kpi-bar" style="background:var(--warn)"></div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-lbl">Mejor competidor</div>
+        <div class="kpi-val" style="color:var(--ok)">3</div>
+        <div class="kpi-sub">Hostinger en flujo ideal</div>
+        <div class="kpi-bar" style="background:var(--ok)"></div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-lbl">Promedio industria</div>
+        <div class="kpi-val" style="color:var(--accent)">7.8</div>
+        <div class="kpi-sub">Neubox está dentro del rango</div>
+        <div class="kpi-bar" style="background:var(--accent)"></div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-lbl">Target óptimo</div>
+        <div class="kpi-val" style="color:var(--ok)">≤4</div>
+        <div class="kpi-sub">eliminando 2–4 pasos</div>
+        <div class="kpi-bar" style="background:var(--ok)"></div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:24px">
+      <div class="kpi-lbl" style="margin-bottom:20px">Termómetro de venta — clics para finalizar compra</div>
+
+      <div class="brow">
+        <div class="brow-name">Hostinger</div>
+        <div class="brow-track"><div class="brow-fill" id="b1" style="width:0;background:#1a7a46"><span>3 clics — flujo ideal</span></div></div>
+        <div class="brow-num" style="color:var(--ok)">3</div>
+      </div>
+      <div class="brow">
+        <div class="brow-name hi">◆ Neubox</div>
+        <div class="brow-track"><div class="brow-fill" id="b2" style="width:0;background:#2250e8"><span>5–8 · sin login inicial</span></div></div>
+        <div class="brow-num" style="color:var(--accent)">6.5</div>
+      </div>
+      <div class="brow">
+        <div class="brow-name">GoDaddy</div>
+        <div class="brow-track"><div class="brow-fill" id="b3" style="width:0;background:#a85c00"><span></span></div></div>
+        <div class="brow-num" style="color:var(--warn)">7</div>
+      </div>
+      <div class="brow">
+        <div class="brow-name">HostGator MX</div>
+        <div class="brow-track"><div class="brow-fill" id="b4" style="width:0;background:#b56800"><span></span></div></div>
+        <div class="brow-num" style="color:var(--warn)">8</div>
+      </div>
+      <div class="brow">
+        <div class="brow-name">WebEmpresa</div>
+        <div class="brow-track"><div class="brow-fill" id="b5" style="width:0;background:#b84018"><span></span></div></div>
+        <div class="brow-num" style="color:var(--err)">6</div>
+      </div>
+      <div class="brow">
+        <div class="brow-name">Namecheap</div>
+        <div class="brow-track"><div class="brow-fill" id="b6" style="width:0;background:#c0251d"><span></span></div></div>
+        <div class="brow-num" style="color:var(--err)">9</div>
+      </div>
+      <div class="brow">
+        <div class="brow-name">DonWeb</div>
+        <div class="brow-track"><div class="brow-fill" id="b7" style="width:0;background:#c0251d;opacity:.8"><span></span></div></div>
+        <div class="brow-num" style="color:var(--err)">9</div>
+      </div>
+      <div class="brow">
+        <div class="brow-name">Bluehost</div>
+        <div class="brow-track"><div class="brow-fill" id="b8" style="width:0;background:#911a14"><span></span></div></div>
+        <div class="brow-num" style="color:var(--err)">9</div>
+      </div>
+      <div class="brow">
+        <div class="brow-name">MiHosting</div>
+        <div class="brow-track"><div class="brow-fill" id="b9" style="width:0;background:#7f1d1d"><span></span></div></div>
+        <div class="brow-num" style="color:var(--err)">10</div>
+      </div>
+      <div class="brow">
+        <div class="brow-name">DigitalOcean</div>
+        <div class="brow-track"><div class="brow-fill" id="b10" style="width:0;background:#6e1712"><span>Registro forzado INICIO</span></div></div>
+        <div class="brow-num" style="color:var(--err)">12+</div>
+      </div>
+
+      <div class="insight">
+        <div class="insight-lbl">⚡ Insight accionable</div>
+        <p>Reducir el flujo de Neubox de <strong>6.5 → 4 clics</strong> eliminando pasos redundantes en el carrito podría aumentar la conversión en usuarios impulsivos entre un <strong>15–25%</strong>. El mayor quick-win: integrar periodicidad + cPanel en una sola pantalla y mostrar OXXO/SPEI antes del checkout final. Neubox ya gana en lo más importante: <strong>no obliga al registro hasta el final</strong>, a diferencia de DigitalOcean y Bluehost.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════ TAB 2 · GAPS -->
+  <div id="t2" class="panel">
+
+    <div class="sec-head"><span class="sec-n">02 —</span><span class="sec-t">Matriz de Gaps de Producto</span></div>
+
+    <div class="g4">
+      <div class="card kpi">
+        <div class="kpi-lbl">Plan Recomendado</div>
+        <div class="kpi-val" style="color:var(--err)">0%</div>
+        <div class="kpi-sub">Neubox no · 60% competidores sí</div>
+        <div class="kpi-bar" style="background:var(--err)"></div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-lbl">Add-ons Modulares</div>
+        <div class="kpi-val" style="color:var(--err)">No</div>
+        <div class="kpi-sub">+RAM/SSD sin cambiar de plan</div>
+        <div class="kpi-bar" style="background:var(--err)"></div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-lbl">Métodos de Pago Visibles</div>
+        <div class="kpi-val" style="color:var(--ok)">Sí</div>
+        <div class="kpi-sub">Neubox lo muestra · ventaja real</div>
+        <div class="kpi-bar" style="background:var(--ok)"></div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-lbl">Tooltips en Specs</div>
+        <div class="kpi-val" style="color:var(--err)">No</div>
+        <div class="kpi-sub">GoDaddy y Hostinger sí</div>
+        <div class="kpi-bar" style="background:var(--err)"></div>
+      </div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Feature</th><th>Qué resuelve</th>
+            <th>Neubox</th><th>GoDaddy</th><th>Hostinger</th>
+            <th>Namecheap</th><th>HostGator</th><th>DigitalOcean</th><th>Prioridad</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Plan Recomendado</td><td>Reduce parálisis de decisión</td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-yes">✓ SÍ</span></td><td><span class="chip chip-yes">✓ SÍ</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-yes">✓ SÍ</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="pri-hi">● Alta</span></td></tr>
+          <tr><td>Add-ons Modulares</td><td>Ticket sin sobrecompra</td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-yes">✓ SÍ</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="pri-hi">● Alta</span></td></tr>
+          <tr><td>Tooltips en Specs</td><td>Educa sin saturar la UI</td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-yes">✓ SÍ</span></td><td><span class="chip chip-yes">✓ SÍ</span></td><td><span class="chip chip-mid">~ Parcial</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="pri-hi">● Alta</span></td></tr>
+          <tr><td>Métodos Pago Visibles</td><td>Elimina abandono por duda</td><td><span class="chip chip-yes">✓ SÍ</span></td><td><span class="chip chip-yes">✓ SÍ</span></td><td><span class="chip chip-yes">✓ SÍ</span></td><td><span class="chip chip-yes">✓ SÍ</span></td><td><span class="chip chip-yes">✓ SÍ</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="pri-hi" style="color:var(--ok)">✓ OK</span></td></tr>
+          <tr><td>VPS Preinstalados</td><td>n8n, Docker, IA listos</td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-mid">~ Parcial</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-yes">✓ SÍ</span></td><td><span class="chip chip-mid">~ Parcial</span></td><td><span class="pri-md">◎ Media</span></td></tr>
+          <tr><td>Tabla Comparativa</td><td>Neubox vs. competencia en landing</td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-yes">✓ SÍ</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="pri-md">◎ Media</span></td></tr>
+          <tr><td>Webinars / Talleres</td><td>Fidelización + autoridad</td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="pri-md">◎ Media</span></td></tr>
+          <tr><td>Dark Mode Panel</td><td>Experiencia dev moderna</td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-mid">~ Parcial</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-no">✗ NO</span></td><td><span class="chip chip-yes">✓ SÍ</span></td><td><span class="pri-lo">○ Baja</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="insight">
+      <div class="insight-lbl">⚡ Insight accionable</div>
+      <p>Las <strong>3 features de prioridad alta</strong> son cambios puros de UI — no requieren nueva infraestructura. Implementar el Plan Recomendado + Tooltips en 1 sprint posiciona a Neubox a la par de Hostinger en experiencia de compra. <strong>Nota v2:</strong> Neubox ya muestra métodos de pago (SÍ), una ventaja que DO, WebEmpresa y DonWeb no tienen — hay que comunicarlo más.</p>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════ TAB 3 · SCORE -->
+  <div id="t3" class="panel">
+
+    <div class="sec-head"><span class="sec-n">03 —</span><span class="sec-t">Score de Confianza y Percepción UX/CX</span></div>
+
+    <div class="g4">
+      <div class="card kpi"><div class="kpi-lbl">Score Neubox</div><div class="kpi-val" style="color:var(--accent)">4/5</div><div class="kpi-sub">Soporte #1 · UI rezagada</div><div class="kpi-bar" style="background:var(--accent);width:80%"></div></div>
+      <div class="card kpi"><div class="kpi-lbl">Mejor score</div><div class="kpi-val" style="color:var(--ok)">5/5</div><div class="kpi-sub">Hostinger · mejor UX global</div><div class="kpi-bar" style="background:var(--ok)"></div></div>
+      <div class="card kpi"><div class="kpi-lbl">Peor score</div><div class="kpi-val" style="color:var(--err)">1/5</div><div class="kpi-sub">MiHosting · UX crítica</div><div class="kpi-bar" style="background:var(--err);width:20%"></div></div>
+      <div class="card kpi"><div class="kpi-lbl">Neubox vs. promedio</div><div class="kpi-val" style="color:var(--ok)">+14%</div><div class="kpi-sub">Sobre media del sector (3.5)</div><div class="kpi-bar" style="background:var(--ok)"></div></div>
+    </div>
+
+    <div class="g3">
+      <!-- Neubox -->
+      <div class="card" style="border-color:var(--accent-ring);border-width:1.5px">
+        <div class="sc-top">
+          <div><div class="kpi-lbl" style="color:var(--accent)">◆ Neubox MX</div><div class="sc-name" style="color:var(--accent)">Neubox</div></div>
+          <div class="sc-val" style="color:var(--accent)">4.0</div>
+        </div>
+        <div class="sc-track"><div class="sc-fill" style="width:80%;background:var(--accent)"></div></div>
+        <div class="sc-rows">
+          <div class="sc-row"><span class="sc-row-l">Soporte / chatbot</span><span class="sc-stars" style="color:var(--ok)">★★★★★</span></div>
+          <div class="sc-row"><span class="sc-row-l">Transparencia MXN</span><span class="sc-stars" style="color:var(--ok)">★★★★★</span></div>
+          <div class="sc-row"><span class="sc-row-l">Métodos de pago</span><span class="sc-stars" style="color:var(--ok)">★★★★★</span></div>
+          <div class="sc-row"><span class="sc-row-l">Velocidad de carga</span><span class="sc-stars" style="color:var(--ok)">★★★★☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Social proof</span><span class="sc-stars" style="color:var(--ok)">★★★★☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">UI / estética</span><span class="sc-stars" style="color:var(--err)">★★☆☆☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Checkout / carrito</span><span class="sc-stars" style="color:var(--warn)">★★★☆☆</span></div>
+        </div>
+      </div>
+      <!-- Hostinger -->
+      <div class="card">
+        <div class="sc-top"><div><div class="kpi-lbl">Internacional</div><div class="sc-name">Hostinger</div></div><div class="sc-val" style="color:var(--ok)">5.0</div></div>
+        <div class="sc-track"><div class="sc-fill" style="width:100%;background:var(--ok)"></div></div>
+        <div class="sc-rows">
+          <div class="sc-row"><span class="sc-row-l">Soporte IA (Kodee)</span><span class="sc-stars" style="color:var(--ok)">★★★★☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Transparencia precios</span><span class="sc-stars" style="color:var(--ok)">★★★★★</span></div>
+          <div class="sc-row"><span class="sc-row-l">Métodos de pago</span><span class="sc-stars" style="color:var(--ok)">★★★★★</span></div>
+          <div class="sc-row"><span class="sc-row-l">Velocidad carrito</span><span class="sc-stars" style="color:var(--warn)">★★★☆☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Social proof</span><span class="sc-stars" style="color:var(--ok)">★★★★★</span></div>
+          <div class="sc-row"><span class="sc-row-l">UI / estética</span><span class="sc-stars" style="color:var(--ok)">★★★★★</span></div>
+          <div class="sc-row"><span class="sc-row-l">Checkout</span><span class="sc-stars" style="color:var(--ok)">★★★★★</span></div>
+        </div>
+      </div>
+      <!-- GoDaddy -->
+      <div class="card">
+        <div class="sc-top"><div><div class="kpi-lbl">Internacional</div><div class="sc-name">GoDaddy</div></div><div class="sc-val" style="color:var(--warn)">4.0</div></div>
+        <div class="sc-track"><div class="sc-fill" style="width:80%;background:var(--warn)"></div></div>
+        <div class="sc-rows">
+          <div class="sc-row"><span class="sc-row-l">Soporte en vivo</span><span class="sc-stars" style="color:var(--warn)">★★★☆☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Transparencia precios</span><span class="sc-stars" style="color:var(--warn)">★★★☆☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Métodos de pago</span><span class="sc-stars" style="color:var(--ok)">★★★★★</span></div>
+          <div class="sc-row"><span class="sc-row-l">Velocidad carrito</span><span class="sc-stars" style="color:var(--warn)">★★★☆☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Social proof</span><span class="sc-stars" style="color:var(--ok)">★★★★★</span></div>
+          <div class="sc-row"><span class="sc-row-l">UI / estética</span><span class="sc-stars" style="color:var(--ok)">★★★★☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Checkout</span><span class="sc-stars" style="color:var(--warn)">★★★☆☆</span></div>
+        </div>
+      </div>
+      <!-- DigitalOcean -->
+      <div class="card">
+        <div class="sc-top"><div><div class="kpi-lbl">Internacional</div><div class="sc-name">DigitalOcean</div></div><div class="sc-val" style="color:var(--err)">2.0</div></div>
+        <div class="sc-track"><div class="sc-fill" style="width:40%;background:var(--err)"></div></div>
+        <div class="sc-rows">
+          <div class="sc-row"><span class="sc-row-l">Soporte</span><span class="sc-stars" style="color:var(--err)">★☆☆☆☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Transparencia precios</span><span class="sc-stars" style="color:var(--err)">★☆☆☆☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Métodos de pago</span><span class="sc-stars" style="color:var(--err)">★☆☆☆☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Velocidad de carga</span><span class="sc-stars" style="color:var(--ok)">★★★★★</span></div>
+          <div class="sc-row"><span class="sc-row-l">Social proof</span><span class="sc-stars" style="color:var(--warn)">★★★☆☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">UI / estética</span><span class="sc-stars" style="color:var(--ok)">★★★★☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Checkout</span><span class="sc-stars" style="color:var(--err)">★☆☆☆☆</span></div>
+        </div>
+      </div>
+      <!-- Bluehost -->
+      <div class="card">
+        <div class="sc-top"><div><div class="kpi-lbl">Internacional</div><div class="sc-name">Bluehost</div></div><div class="sc-val" style="color:var(--warn)">3.0</div></div>
+        <div class="sc-track"><div class="sc-fill" style="width:60%;background:var(--warn)"></div></div>
+        <div class="sc-rows">
+          <div class="sc-row"><span class="sc-row-l">Soporte ES</span><span class="sc-stars" style="color:var(--err)">★☆☆☆☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Transparencia precios</span><span class="sc-stars" style="color:var(--ok)">★★★★☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Métodos pago MX</span><span class="sc-stars" style="color:var(--ok)">★★★★☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Velocidad</span><span class="sc-stars" style="color:var(--ok)">★★★★☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Social proof</span><span class="sc-stars" style="color:var(--ok)">★★★★☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">UI / estética</span><span class="sc-stars" style="color:var(--ok)">★★★★☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Soporte local MX</span><span class="sc-stars" style="color:var(--err)">★☆☆☆☆</span></div>
+        </div>
+      </div>
+      <!-- MiHosting -->
+      <div class="card">
+        <div class="sc-top"><div><div class="kpi-lbl">Nacional</div><div class="sc-name">MiHosting</div></div><div class="sc-val" style="color:var(--err)">1.0</div></div>
+        <div class="sc-track"><div class="sc-fill" style="width:20%;background:var(--err)"></div></div>
+        <div class="sc-rows">
+          <div class="sc-row"><span class="sc-row-l">Soporte</span><span class="sc-stars" style="color:var(--err)">★★☆☆☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Transparencia precios</span><span class="sc-stars" style="color:var(--err)">★☆☆☆☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Métodos de pago</span><span class="sc-stars" style="color:var(--err)">★☆☆☆☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Velocidad</span><span class="sc-stars" style="color:var(--err)">★★☆☆☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Social proof</span><span class="sc-stars" style="color:var(--err)">★☆☆☆☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">UI / estética</span><span class="sc-stars" style="color:var(--err)">★☆☆☆☆</span></div>
+          <div class="sc-row"><span class="sc-row-l">Checkout</span><span class="sc-stars" style="color:var(--err)">★☆☆☆☆</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="insight">
+      <div class="insight-lbl">⚡ Insight accionable</div>
+      <p>Neubox tiene el <strong>mejor chatbot del mercado</strong> — supera incluso a Kodee (Hostinger) en profundidad de respuesta. La percepción visual del carrito le resta 1 punto completo en el score. Acción inmediata: <strong>hacer del soporte el argumento #1 en el copy de la landing</strong> mientras se moderniza la interfaz. No romper lo que funciona — renovar lo que se ve.</p>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════ TAB 4 · REGIONAL -->
+  <div id="t4" class="panel">
+
+    <div class="sec-head"><span class="sec-n">04 —</span><span class="sec-t">Monitor de Ventaja Regional — México Focus</span></div>
+
+    <div class="g4">
+      <div class="card kpi"><div class="kpi-lbl">Soporte humano ES 24/7</div><div class="kpi-val" style="color:var(--ok)">100%</div><div class="kpi-sub">Internacionales fallan totalmente</div><div class="kpi-bar" style="background:var(--ok)"></div></div>
+      <div class="card kpi"><div class="kpi-lbl">Precios en MXN</div><div class="kpi-val" style="color:var(--ok)">✓</div><div class="kpi-sub">GoDaddy, DO, Bluehost cobran USD</div><div class="kpi-bar" style="background:var(--ok)"></div></div>
+      <div class="card kpi"><div class="kpi-lbl">Nodo en México</div><div class="kpi-val" style="color:var(--ok)">Sí</div><div class="kpi-sub">Solo Neubox + HostGator MX</div><div class="kpi-bar" style="background:var(--ok)"></div></div>
+      <div class="card kpi"><div class="kpi-lbl">OXXO / SPEI</div><div class="kpi-val" style="color:var(--ok)">Sí</div><div class="kpi-sub">Neubox los muestra · ventaja</div><div class="kpi-bar" style="background:var(--ok)"></div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="kpi-lbl" style="margin-bottom:16px">¿Qué falla en los gigantes para el mercado mexicano?</div>
+      <div class="reg-grid">
+        <div class="reg-card"><div class="reg-ico" style="background:var(--err-tint)">💸</div><div class="reg-body"><h4>GoDaddy — Cargos fantasma</h4><p>Impuestos y cargos ocultos hasta el final del checkout. Precios en USD con conversión variable. Fila de espera en soporte en vivo.</p></div></div>
+        <div class="reg-card"><div class="reg-ico" style="background:var(--err-tint)">🔒</div><div class="reg-body"><h4>DigitalOcean — Muro de registro</h4><p>Obliga a crear cuenta antes de ver precios. Sin soporte en español. No muestra métodos de pago. Registro forzado al INICIO del flujo.</p></div></div>
+        <div class="reg-card"><div class="reg-ico" style="background:var(--err-tint)">🇺🇸</div><div class="reg-body"><h4>Bluehost — Barrera de idioma</h4><p>Sitio en inglés por defecto. Soporte con lada de EE.UU. Sin agentes en español. Cliente mexicano desprotegido en emergencias técnicas.</p></div></div>
+        <div class="reg-card"><div class="reg-ico" style="background:var(--warn-tint)">💱</div><div class="reg-body"><h4>WebEmpresa — Precios en USD</h4><p>Tiene página para México pero cobra en dólares. El cliente asume el riesgo cambiario. No muestra métodos de pago locales.</p></div></div>
+        <div class="reg-card"><div class="reg-ico" style="background:var(--warn-tint)">🤖</div><div class="reg-body"><h4>Namecheap — Solo inglés</h4><p>Chat exclusivamente en inglés. Sin chat persistente en todas las páginas. Pierde la oportunidad de resolver dudas en el momento crítico de decisión.</p></div></div>
+        <div class="reg-card" style="border-color:var(--ok-ring);background:var(--ok-tint)"><div class="reg-ico" style="background:#d1fae5">⭐</div><div class="reg-body"><h4 style="color:var(--ok)">Neubox — La combinación única</h4><p>Único proveedor con soporte humano en español, precios fijos en MXN, nodo en México, OXXO/SPEI visibles y sin registro forzado al inicio. <strong>Esta combinación no existe en ningún internacional.</strong></p></div></div>
+      </div>
+
+      <div class="insight">
+        <div class="insight-lbl">⚡ Copy para landing page</div>
+        <p><strong>"Precios fijos en pesos mexicanos, soporte humano en tu idioma, servidor en México."</strong> — Esta frase de 3 puntos derrota directamente las 3 principales objeciones del usuario que consideró GoDaddy, Bluehost o WebEmpresa. Debe estar en el <strong>hero de la landing de VPS</strong>, no al final de la página.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════ TAB 5 · DATOS RAW -->
+  <div id="t5" class="panel">
+
+    <div class="sec-head"><span class="sec-n">05 —</span><span class="sec-t">Tabla de Datos RAW del Benchmark</span></div>
+
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px">
+      <div class="raw-table-wrap">
+        <table class="raw-table">
+          <thead>
+            <tr>
+              <th>Métrica</th>
+              <th>NB ◆</th><th>GD</th><th>HT</th><th>DO</th><th>BH</th>
+              <th>NC</th><th>HG</th><th>MH</th><th>WE</th><th>DW</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Pasos (Click-to-Pay)</td>
+              <td class="nb">5–8</td><td>7</td><td>8</td><td class="bad">12*</td><td>9</td>
+              <td>5</td><td>8</td><td class="bad">10</td><td>6</td><td>9</td>
+            </tr>
+            <tr>
+              <td>Densidad de Specs</td>
+              <td class="nb">7</td><td>8</td><td>4</td><td class="bad">15</td><td>3</td>
+              <td>6</td><td>7</td><td>4</td><td>5</td><td>10</td>
+            </tr>
+            <tr>
+              <td>Etiqueta "Recomendado"</td>
+              <td class="nb bad">NO</td><td class="good">SÍ</td><td class="good">SÍ</td><td class="bad">NO</td><td class="bad">NO</td>
+              <td class="bad">NO</td><td class="good">SÍ</td><td class="bad">NO</td><td class="bad">NO</td><td class="good">SÍ</td>
+            </tr>
+            <tr>
+              <td>Variedad de SO</td>
+              <td class="nb">4</td><td>2</td><td>11</td><td class="good">12</td><td>2</td>
+              <td>5</td><td>4</td><td>2</td><td>3</td><td>4</td>
+            </tr>
+            <tr>
+              <td>Flexibilidad de Ciclos</td>
+              <td class="nb">4</td><td>5</td><td>3</td><td>4</td><td>4</td>
+              <td>3</td><td>4</td><td>2</td><td>2</td><td>3</td>
+            </tr>
+            <tr>
+              <td>Upselling (Extras)</td>
+              <td class="nb">SÍ</td><td>SÍ</td><td>SÍ</td><td class="good">NO</td><td>SÍ</td>
+              <td>SÍ</td><td>SÍ</td><td>SÍ</td><td>SÍ</td><td>SÍ</td>
+            </tr>
+            <tr>
+              <td>Registro Forzado</td>
+              <td class="nb good">FINAL</td><td>FINAL</td><td>FINAL</td><td class="bad">INICIO</td><td class="bad">INICIO</td>
+              <td>FINAL</td><td>FINAL</td><td>FINAL</td><td>FINAL</td><td>FINAL</td>
+            </tr>
+            <tr>
+              <td>Claridad Precio Final</td>
+              <td class="nb good">ALTA</td><td class="good">ALTA</td><td class="good">ALTA</td><td class="good">ALTA</td><td class="bad">BAJA</td>
+              <td class="good">ALTA</td><td class="mid">MEDIA</td><td class="bad">BAJA</td><td class="bad">BAJA</td><td class="good">ALTA</td>
+            </tr>
+            <tr>
+              <td>Métodos Pago Visibles</td>
+              <td class="nb good">SÍ</td><td class="good">SÍ</td><td class="good">SÍ</td><td class="bad">NO</td><td class="good">SÍ</td>
+              <td class="good">SÍ</td><td class="good">SÍ</td><td class="bad">NO</td><td class="bad">NO</td><td class="bad">NO</td>
+            </tr>
+            <tr>
+              <td>Score UX (1–5)</td>
+              <td class="nb">4</td><td>4</td><td class="good">5</td><td class="bad">2</td><td>3</td>
+              <td>4</td><td>3</td><td class="bad">1</td><td>4</td><td>3</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="comp-table-wrap">
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Competidor</th><th>Precio Entrada VPS</th>
+              <th>Soporte ES 24/7</th><th>Nodo MX</th>
+              <th>Score UX</th><th>Fortaleza clave para Neubox</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>GoDaddy</td><td class="price-cell">$169.99 MXN</td><td><span class="chip chip-yes">✓ Sí</span></td><td><span class="chip chip-no">✗ No</span></td><td class="score-cell">4</td><td class="tag-cell">Proceso de compra estandarizado y rápido</td></tr>
+            <tr><td>2</td><td>Hostinger</td><td class="price-cell">$104.99 MXN</td><td><span class="chip chip-mid">~ IA</span></td><td><span class="chip chip-no">✗ No</span></td><td class="score-cell">5</td><td class="tag-cell">Kodee + plan "Más Vendido"</td></tr>
+            <tr><td>3</td><td>DigitalOcean</td><td class="price-cell">$4.00 USD</td><td><span class="chip chip-no">✗ No</span></td><td><span class="chip chip-no">✗ No</span></td><td class="score-cell">2</td><td class="tag-cell">Velocidad técnica extrema + tutoriales</td></tr>
+            <tr><td>4</td><td>Bluehost</td><td class="price-cell">$2.09 USD</td><td><span class="chip chip-no">✗ No</span></td><td><span class="chip chip-no">✗ No</span></td><td class="score-cell">3</td><td class="tag-cell">Limpieza visual + paleta neutral</td></tr>
+            <tr><td>5</td><td>Namecheap</td><td class="price-cell">$3.88 USD</td><td><span class="chip chip-no">✗ No</span></td><td><span class="chip chip-no">✗ No</span></td><td class="score-cell">4</td><td class="tag-cell">Tablas comparativas vs. competidores</td></tr>
+            <tr><td>6</td><td>HostGator MX</td><td class="price-cell">$76.25 MXN</td><td><span class="chip chip-yes">✓ Sí</span></td><td><span class="chip chip-yes">✓ Sí</span></td><td class="score-cell">3</td><td class="tag-cell">VPS con n8n, IA preinstalados</td></tr>
+            <tr class="nb-row"><td>7</td><td>◆ Neubox</td><td class="price-cell">$390.00 MXN</td><td><span class="chip chip-yes">✓ Top</span></td><td><span class="chip chip-yes">✓ Sí</span></td><td class="score-cell">4</td><td class="tag-cell">Mejor chatbot + MXN + sin login inicial</td></tr>
+            <tr><td>8</td><td>MiHosting</td><td class="price-cell">$49.00 USD</td><td><span class="chip chip-no">✗ No</span></td><td><span class="chip chip-yes">✓ Sí</span></td><td class="score-cell">1</td><td class="tag-cell">Servidores físicos en MX (mejorar ejecución)</td></tr>
+            <tr><td>9</td><td>WebEmpresa</td><td class="price-cell">$1.18 USD*</td><td><span class="chip chip-yes">✓ Sí</span></td><td><span class="chip chip-no">✗ No</span></td><td class="score-cell">4</td><td class="tag-cell">Blog categorizado por niveles</td></tr>
+            <tr><td>10</td><td>DonWeb MX</td><td class="price-cell">$63.13 MXN</td><td><span class="chip chip-mid">~ Lento</span></td><td><span class="chip chip-no">✗ No</span></td><td class="score-cell">3</td><td class="tag-cell">Webinars gratuitos + logos Bimbo/Cemex</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════ TAB 6 · ROADMAP -->
+  <div id="t6" class="panel">
+
+    <div class="sec-head"><span class="sec-n">06 —</span><span class="sec-t">Plan de Mejora Estratégica</span></div>
+
+    <div class="g4">
+      <div class="card kpi"><div class="kpi-lbl">Acciones totales</div><div class="kpi-val" style="color:var(--accent)">9</div><div class="kpi-sub">identificadas en el benchmark</div><div class="kpi-bar" style="background:var(--accent)"></div></div>
+      <div class="card kpi"><div class="kpi-lbl">Prioridad alta — UI</div><div class="kpi-val" style="color:var(--err)">3</div><div class="kpi-sub">Cambios de UI sin infraestructura</div><div class="kpi-bar" style="background:var(--err)"></div></div>
+      <div class="card kpi"><div class="kpi-lbl">Prioridad media</div><div class="kpi-val" style="color:var(--warn)">3</div><div class="kpi-sub">Producto y contenido</div><div class="kpi-bar" style="background:var(--warn)"></div></div>
+      <div class="card kpi"><div class="kpi-lbl">Largo plazo</div><div class="kpi-val" style="color:var(--ink-3)">3</div><div class="kpi-sub">Fidelización y autoridad</div><div class="kpi-bar" style="background:var(--ink-3);width:60%"></div></div>
+    </div>
+
+    <!-- Fase 1 -->
+    <div class="rm-phase">
+      <div class="rm-phase-head"><span class="rm-phase-dot" style="background:var(--err)"></span>FASE 1 · Quick wins — UI & checkout sin nueva infraestructura</div>
+      <div class="rm-item">
+        <div class="rm-n" style="background:var(--err-tint);color:var(--err)">1</div>
+        <div class="rm-body">
+          <h4>Implementar "Plan Recomendado" / "Más Popular"</h4>
+          <p>Badge visual al plan intermedio para guiar la decisión de compra. Reduce la parálisis cognitiva y aumenta conversión en planes de mayor margen. GoDaddy, Hostinger y HostGator ya lo usan con éxito medido.</p>
+        </div>
+        <div class="rm-tag chip chip-no">★ Alta</div>
+      </div>
+      <div class="rm-item">
+        <div class="rm-n" style="background:var(--err-tint);color:var(--err)">2</div>
+        <div class="rm-body">
+          <h4>Rediseño del carrito de compras (look & feel)</h4>
+          <p>Actualizar la identidad visual del checkout para coherencia estética con los estándares de una empresa líder en tecnología 2026. Una pasarela visualmente desfasada compromete la percepción de seguridad en el momento crítico de la transacción.</p>
+        </div>
+        <div class="rm-tag chip chip-no">★ Alta</div>
+      </div>
+      <div class="rm-item">
+        <div class="rm-n" style="background:var(--err-tint);color:var(--err)">3</div>
+        <div class="rm-body">
+          <h4>Tooltips informativos en especificaciones técnicas</h4>
+          <p>Globos de texto con explicación breve en cada componente (RAM, vCPU, SSD, Transferencia). Educa al usuario primerizo sin saturar el diseño. GoDaddy y Hostinger lo implementan con impacto directo en reducción de dudas pre-compra.</p>
+        </div>
+        <div class="rm-tag chip chip-no">★ Alta</div>
+      </div>
+    </div>
+
+    <!-- Fase 2 -->
+    <div class="rm-phase">
+      <div class="rm-phase-head"><span class="rm-phase-dot" style="background:var(--warn)"></span>FASE 2 · Producto & contenido</div>
+      <div class="rm-item">
+        <div class="rm-n" style="background:var(--warn-tint);color:var(--warn)">4</div>
+        <div class="rm-body">
+          <h4>Tabla comparativa Neubox vs. competidores en landing</h4>
+          <p>Sección dedicada que compare Neubox vs. GoDaddy / Hostinger resaltando soporte local, precios en MXN, nodo en México y OXXO/SPEI. Namecheap usa esta estrategia con éxito notable en su proceso de captación.</p>
+        </div>
+        <div class="rm-tag chip chip-mid">◎ Media</div>
+      </div>
+      <div class="rm-item">
+        <div class="rm-n" style="background:var(--warn-tint);color:var(--warn)">5</div>
+        <div class="rm-body">
+          <h4>Add-ons de recursos modulares (+RAM, +SSD)</h4>
+          <p>Permitir que el usuario añada recursos específicos sobre un plan base sin saltar obligatoriamente al siguiente nivel. Reduce el riesgo percibido de sobrecompra y aumenta el ticket promedio de forma progresiva y voluntaria.</p>
+        </div>
+        <div class="rm-tag chip chip-mid">◎ Media</div>
+      </div>
+      <div class="rm-item">
+        <div class="rm-n" style="background:var(--warn-tint);color:var(--warn)">6</div>
+        <div class="rm-body">
+          <h4>VPS con herramientas preinstaladas (One-Click)</h4>
+          <p>Ofrecer imágenes con n8n, Docker, entornos de IA listos para usar. HostGator MX ya lo implementa y captura a developers que no quieren invertir tiempo en configuración inicial. Diferenciador de nicho con alto valor percibido.</p>
+        </div>
+        <div class="rm-tag chip chip-mid">◎ Media</div>
+      </div>
+    </div>
+
+    <!-- Fase 3 -->
+    <div class="rm-phase">
+      <div class="rm-phase-head"><span class="rm-phase-dot" style="background:var(--ink-3)"></span>FASE 3 · Largo plazo — fidelización & autoridad de marca</div>
+      <div class="rm-item">
+        <div class="rm-n" style="background:var(--raised);color:var(--ink-3)">7</div>
+        <div class="rm-body">
+          <h4>Programa de webinars y talleres gratuitos</h4>
+          <p>Mini-talleres de configuración de servidores, seguridad y automatización. Modelo comprobado de DonWeb. Posiciona a Neubox como mentor técnico y genera un imán de nuevos clientes que aprenden antes de comprar.</p>
+        </div>
+        <div class="rm-tag chip chip-yes" style="background:var(--raised);color:var(--ink-3);border-color:var(--border)">○ Baja</div>
+      </div>
+      <div class="rm-item">
+        <div class="rm-n" style="background:var(--raised);color:var(--ink-3)">8</div>
+        <div class="rm-body">
+          <h4>Blog categorizado por niveles: Básico / Intermedio / Avanzado</h4>
+          <p>Estructura de contenidos como referencia WebEmpresa. Reduce tickets de soporte repetitivos y construye autoridad técnica de largo plazo. Funciona como herramienta de auto-soporte eficiente para usuarios en todas las etapas.</p>
+        </div>
+        <div class="rm-tag chip chip-yes" style="background:var(--raised);color:var(--ink-3);border-color:var(--border)">○ Baja</div>
+      </div>
+      <div class="rm-item">
+        <div class="rm-n" style="background:var(--raised);color:var(--ink-3)">9</div>
+        <div class="rm-body">
+          <h4>Logos de clientes mexicanos reconocidos</h4>
+          <p>Social proof con marcas de referencia nacional. Modelo de DonWeb (Bimbo, Cemex). Para el mercado mexicano esta validación por asociación supera a cualquier certificación técnica abstracta en el impacto sobre la decisión de compra.</p>
+        </div>
+        <div class="rm-tag chip chip-yes" style="background:var(--raised);color:var(--ink-3);border-color:var(--border)">○ Baja</div>
+      </div>
+    </div>
+
+  </div><!-- /panel t6 -->
+
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+function go(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  btn.classList.add('on');
+  if (id === 't1') setTimeout(animBars, 60);
+}
+
+const bars = {
+  b1:'25%', b2:'54%', b3:'58%', b4:'66%',
+  b5:'50%', b6:'75%', b7:'75%', b8:'75%',
+  b9:'83%', b10:'100%'
+};
+
+function animBars() {
+  Object.entries(bars).forEach(([id, w]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.width = '0';
+    requestAnimationFrame(() => requestAnimationFrame(() => { el.style.width = w; }));
+  });
+}
+
+window.addEventListener('load', () => setTimeout(animBars, 200));
+</script>
+</body>
+</html>
